@@ -10,34 +10,18 @@ import matplotlib.pyplot as plt
 from sklearn.metrics.pairwise import pairwise_distances
 from random import sample
 
-np.random.seed(2020)
-
-n_genes = 16
-#citiesx = np.random.permutation(100)
-#citiesy = np.random.permutation(100)
-#cities = [[citiesx[i], citiesy[i]] for i in range(n_genes)]
-cities = [[0, 0], [0, 20], [0, 40], [0, 60], [0, 80],
-          [80, 0], [80, 20], [80, 40], [80, 60], [80, 80],
-          [20, 0], [40, 0], [60, 0],
-          [20, 80], [40, 80], [60, 80]]
-n_chromosomes = 300
-distances = pairwise_distances(cities, metric='euclidean')
-population = [np.random.permutation(n_genes) for x in range(n_chromosomes)]
-
 class GA():
     def __init__(self, population, distances, n_genes, n_chromosomes):
         self.population = population
         self.distances = distances
         self.n_genes = n_genes
         self.n_chromosomes = n_chromosomes
-
-    
+   
     def fitness(self, chromosome):
         fitness = 0
         for i in range(self.n_genes-1):
             fitness += self.distances[chromosome[i]][chromosome[i+1]]
         return fitness
-    np.random.rand
     
     def crossover1(self, parent1, parent2):
         cross_point = np.random.randint(1,self.n_genes-1)
@@ -60,8 +44,11 @@ class GA():
         return child1, child2
 
     def crossover2(self, parent1, parent2):
-        cross_point1 = np.random.randint(1,self.n_genes-2)
-        cross_point2 = np.random.randint(cross_point1+1,self.n_genes-1)
+        cross_point1, cross_point2 = sample(range(n_genes), 2)
+        if (cross_point1 < cross_point2):
+            tmp = cross_point1
+            cross_point1 = cross_point2
+            cross_point2 = tmp
         child1 = np.array(parent1)
         child2 = np.array(parent2)
         j1 = cross_point1
@@ -148,44 +135,59 @@ class GA():
         
         self.population = new_population
         
-    def evolution(self):        
-        self.probabilisticSelection(n_chromosomes, True)
-        #print("step1")
-        #print(GA.population)
-        for i in range(int(n_chromosomes/2)):
-            np.random.randint
-            c1, c2 = self.crossover2(self.population[i], self.population[i+1])
-            if not any([np.array_equal(c1, x) for x in self.population]):
-                self.population.append(c1)
-            if not any([np.array_equal(c2, x) for x in self.population]):
-                self.population.append(c2)
-        
-        #print("step2")
-        #print(GA.population)
-        #self.probabilisticSelection(n_chromosomes, p=[1000, -100])
-        print("- distance: " + str(self.fitness(self.population[0])))
-        return self.population[0], self.fitness(self.population[0])
-        #print("step3")
-        #print(GA.population)
+    def evolution(self, selection_factor, mut_prob):
+        """
+        Apply probabilistic selection to parents and create offsprings with crossover and mutation.
+        mut_prob is the mutation probability.
+        """
+        self.tournamentSelection(selection_factor, p=0.7)
+        offspring = []
 
-#[ 5 14 12  1 13  6  3  7 10  2  9 11  4  8  0 15]
+        for i in range(selection_factor):
+            p1, p2 = sample(self.population, 2)
+            c1, c2 = self.crossover2(p1, p2)
+            if not any([np.array_equal(c1, x) for x in self.population]):
+                offspring.append(c1)
+            if not any([np.array_equal(c2, x) for x in self.population]):
+                offspring.append(c2)
+
+        for x in self.population:
+            if np.random.rand() <= mut_prob:
+                c = self.mutation(x)
+                if not any([np.array_equal(c, x) for x in self.population]):
+                    offspring.append(c)
+
+        self.population.extend(offspring)
+        self.population.sort(key=lambda x: self.fitness(x))
+        
+        return self.population[0], self.fitness(self.population[0])
+
+np.random.seed(2020)
+
+n_genes = 16
+#citiesx = np.random.permutation(100)
+#citiesy = np.random.permutation(100)
+#cities = [[citiesx[i], citiesy[i]] for i in range(n_genes)]
+cities = [[0, 0], [0, 20], [0, 40], [0, 60], [0, 80],
+          [80, 0], [80, 20], [80, 40], [80, 60], [80, 80],
+          [20, 0], [40, 0], [60, 0],
+          [20, 80], [40, 80], [60, 80]]
+n_chromosomes = 300
+distances = pairwise_distances(cities, metric='euclidean')
+population = [np.random.permutation(n_genes) for x in range(n_chromosomes)]
 
 plt.scatter([x[0] for x in cities], [x[1] for x in cities])
 plt.show()
 
 ga = GA(population, distances, n_genes, n_chromosomes)
 best = [0, 1500]
-for i in range(500):
-    tmp = ga.evolution()
+for i in range(200):
+    tmp = ga.evolution(int(n_chromosomes/2), 0.05)
     if tmp[1] < best[1]:
         best = tmp
-    citiesplot = [cities[i] for i in ga.population[0]]
-    
-    print("Itaeration #" + str(i) + ":")
-    print(ga.population[0])
-    #plt.plot([x[0] for x in citiesplot], [x[1] for x in citiesplot], marker='o')
-    #plt.show()
+    print("Iteration #" + str(i) + ":"  + str(ga.fitness(ga.population[0])))
 
 citiesplot = [cities[i] for i in best[0]]
+print("Best result: " + str(best[1]))
 plt.plot([x[0] for x in citiesplot], [x[1] for x in citiesplot], marker='o')
 plt.show()
