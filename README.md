@@ -1,5 +1,6 @@
 # Genetic_Algorithm
 Overview of genetic algorithm and application to the traveling salesman problem.
+<img src="ga_64x48.gif" width="420">
 ***
 ### Table of Contents
  * Introduction
