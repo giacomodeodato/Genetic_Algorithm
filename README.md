@@ -5,7 +5,7 @@ Overview of genetic algorithm and application to the traveling salesman problem.
 ### Table of Contents
  * Introduction
  * Selection
-   * Deterministi Selection
+   * Deterministic Selection
    * Probabilistic Selection
      * Roulette Wheel Selection
      * Stochastic Universal Sampling
